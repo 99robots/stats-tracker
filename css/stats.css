@@ -1,0 +1,156 @@
+#nnr-custom_ifr {
+	min-height: 400px;
+}
+
+.nnr-wrap .nnr-end-test {
+	margin-left: 12px;
+}
+
+.nnr-wrap .nnr-margin-left {
+	margin-left: 12px;
+}
+
+.nnr-end-test-list {
+	padding-top: 10px;
+	margin: 0;
+	padding-left: 20px;
+	list-style: disc;
+	line-height: 0.75em;
+	color: #777;
+}
+
+#nnr-loading-stats {
+	display: table;
+	margin-top: 100px;
+	width: 100%;
+}
+
+#nnr-loading-stats div {
+	font-size: 100px;
+	margin: 0 auto;
+	display: table;
+}
+
+.nnr-stats-total-container {
+	margin-bottom: 30px !important;
+	clear: both;
+}
+
+div.nnr-stats-totals {
+	padding: 0px;
+	text-align:center;
+	min-height: 100px;
+	margin-bottom: 20px;
+}
+
+div.nnr-stats-impressions-total,
+div.nnr-stats-conversions-total,
+div.nnr-stats-conversion-rate-total {
+	margin: 0px 4px;
+	position: relative;
+}
+
+div.nnr-stats-impressions-total span,
+div.nnr-stats-conversions-total span,
+div.nnr-stats-conversion-rate-total span {
+	position: absolute;
+	left: 10px;
+	top: 10px;
+}
+
+div.nnr-stats-impressions-total i,
+div.nnr-stats-conversions-total i,
+div.nnr-stats-conversion-rate-total i {
+	position: absolute;
+	right: 10px;
+	top: 10px;
+	opacity: 0.5;
+	font-size: 24px;
+}
+
+div.nnr-stats-impressions-total {
+	background-color: #4aaeee;
+	color: white;
+}
+
+div.nnr-stats-conversions-total {
+	background-color: #F15928;
+	color: white;
+}
+
+div.nnr-stats-conversion-rate-total {
+	background-color: #7AB928;
+	color: white;
+}
+
+.nnr-stats-table-container {
+	padding-bottom: 40px;
+}
+
+.nnr-wrap span.sign.arrow {
+	right:0;
+}
+
+.nnr-stats-totals-text {
+	font-size: 48px;
+	padding: 40px 20px;
+	text-align: center;
+}
+
+.nnr-stats-totals-text-ab {
+	font-size: 30px;
+}
+
+div.nnr-line-graph-container {
+	max-width: 1200px;
+	max-height: 700px;
+	margin: 0 auto;
+	display: block;
+	width: 100%;
+}
+
+div.nnr-pie-chart-container {
+	min-height: 300px;
+}
+
+#nnr-line-graph {
+	padding-bottom: 30px;
+}
+
+#nnr-before-table {
+	padding: 0px 0px 30px 0px;
+}
+
+#nnr-line-graph,
+#nnr-line-graph-ab {
+	display: block;
+	margin: 0 auto;
+	width: 100% !important;
+	padding: 0px;
+}
+
+.nnr-conversion-chart {
+}
+
+.nnr-pie-chart-legend-colors {
+}
+
+.nnr-pie-chart-legend-item {
+	display: list-item;
+	padding-bottom: 8px;
+	min-height: 38px;
+}
+
+.nnr-pie-chart-legend-color,
+.nnr-pie-chart-optin-name,
+.nnr-pie-chart-conversion {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.nnr-pie-chart-legend-color {
+	width: 20px;
+	height: 20px;
+	border-radius: 4px;
+	margin-right: 6px;
+}

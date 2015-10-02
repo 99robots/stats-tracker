@@ -6,7 +6,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 
 // Check if class already exists
 
-if (!class_exists("NNR_Stats_Tracker_v1")):
+if ( !class_exists("NNR_Stats_Tracker_v1") ):
 
 /* ================================================================================
  *
@@ -23,16 +23,6 @@ if ( !class_exists('NNR_Stats_Tracker_Base_v1') ) {
  * NNR_Stats_Tracker_v1 class.
  */
 class NNR_Stats_Tracker_v1 extends NNR_Stats_Tracker_Base_v1 {
-
-	/**
-	 * date_format
-	 *
-	 * (default value: 'Y-m-d')
-	 *
-	 * @var string
-	 * @access public
-	 */
-	public $date_format = 'Y-m-d';
 
 	/**
 	 * table_name
@@ -52,15 +42,7 @@ class NNR_Stats_Tracker_v1 extends NNR_Stats_Tracker_Base_v1 {
 	 * @return void
 	 */
 	function __construct($table_name) {
-
 		$this->table_name = $table_name;
-
-		// Add actions for tracking stats
-
-		add_action( 'wp_ajax_nnr_stats_record_impression', 			array($this, 'record_impresssion'));
-		add_action( 'wp_ajax_nopriv_nnr_stats_record_impression', 	array($this, 'record_impresssion'));
-		add_action( 'wp_ajax_nnr_stats_record_click', 				array($this, 'record_conversion'));
-		add_action( 'wp_ajax_nopriv_nnr_stats_record_click', 		array($this, 'record_conversion'));
 	}
 
 	/**
@@ -98,7 +80,7 @@ class NNR_Stats_Tracker_v1 extends NNR_Stats_Tracker_Base_v1 {
 	 * @param mixed $id (default: null)
 	 * @return void
 	 */
-	function get_stats($start, $end, $id = null, $select = '*') {
+	function get_stats($start = null, $end = null, $id = null, $select = '*') {
 
 		$query = null;
 
@@ -152,148 +134,48 @@ class NNR_Stats_Tracker_v1 extends NNR_Stats_Tracker_Base_v1 {
 	}
 
 	/**
-	 * Record an impression.  This can be called server side or client side.
+	 * Get the stats from a certain data type
 	 *
 	 * @access public
-	 * @param bool $ajax (default: true)
-	 * @param mixed $data_id (default: null)
+	 * @param mixed $id
+	 * @param mixed $start (default: null)
+	 * @param mixed $end (default: null)
 	 * @return void
 	 */
-	function record_impresssion( $ajax = true, $data_id = null ) {
+	function get_stats_from_id( $id, $start = null, $end = null ) {
 
-		if ( $ajax ) {
-			$data_id = $_POST['data_id'];
-		}
-
-		// Return false if no data is given
-
-		if ( !isset($data_id) ) {
-			$this->return_data('Impression was NOT able to be recored because no Data ID given.', $ajax);
-		}
-
-		// Return false if crawler
-
-		if ( $this->is_bot() ) {
-			$this->return_data('Impression was NOT able to be recored because a crawler was detected.', $ajax);
-		}
-
-		// Return if user is admin or higher
-
-		if ( current_user_can('edit_published_posts') ) {
-			$this->return_data('Impression was NOT able to be recored because current user is an admin.', $ajax);
-		}
+		$query = null;
 
 		global $wpdb;
-		$today = date($this->date_format);
 
-		// Check if entry already exsits
+		// Single Optin, All Time
 
-		$impressions = $wpdb->query($wpdb->prepare('SELECT * FROM ' . $this->get_table_name() . ' WHERE `date` = %s AND `data_id` = %d', $today, $data_id));
-
-		// Entry aleady exists, just add 1
-
-		if ( isset($impressions) && $impressions != 0 ) {
-
-			$result = $wpdb->query($wpdb->prepare('UPDATE ' . $this->get_table_name() . ' SET
-				`impressions` = `impressions` + 1
-				WHERE `date` = %s AND `data_id` = %d', $today, $data_id
-			));
-
+		if ($start == null && $end == null) {
+			$query = $wpdb->prepare('SELECT * FROM ' . $this->get_table_name() . ' WHERE `data_id` = %d', $id);
 		}
 
-		// Entry does not exist, create a new one and set impressions to 1
+		// Single Optin, Date Range
 
-		else {
-
-			$result = $wpdb->query($wpdb->prepare('INSERT INTO ' . $this->get_table_name() . ' (
-				`date`,
-				`data_id`,
-				`impressions`,
-				`conversions`
-				) VALUES (%s, %d, 1, 0)',
-				$today,
-				$data_id
-			));
-
+		else if ($start != null && $end != null) {
+			$query = $wpdb->prepare('SELECT * FROM ' . $this->get_table_name() . ' WHERE `date` >= %s AND `date` <= %s AND `data_id` = %d', $start, $end, $id);
 		}
 
-		if ( $result ) {
-			$this->return_data('Impression was able to be recored.', $ajax);
-		} else {
-			$this->return_data('Impression was NOT able to be recored.', $ajax);
-		}
-	}
+		// Single Optin, After Date
 
-	/**
-	 * Record an conversion.  This can be called server side or client side.
-	 *
-	 * @access public
-	 * @param bool $ajax (default: true)
-	 * @param mixed $data_id (default: null)
-	 * @return void
-	 */
-	function record_conversion( $ajax = true, $data_id = null ) {
-
-		if ( $ajax ) {
-			$data_id = isset($_POST['data_id']) ? $_POST['data_id'] : null;
+		else if ($start != null && $end == null) {
+			$query = $wpdb->prepare('SELECT * FROM ' . $this->get_table_name() . ' WHERE `date` >= %s AND `data_id` = %d', $start, $id);
 		}
 
-		// Return if no data is given
+		// No query was created
 
-		if ( !isset($data_id) ) {
-			$this->return_data('Conversion was NOT able to be recored because the Data ID was not retrieved.', $ajax);
+		if (!isset($query)) {
+			return false;
 		}
 
-		// Return if user is admin or higher
+		$result = $wpdb->get_results($query, 'ARRAY_A');
 
-		if ( current_user_can('edit_published_posts') ) {
-			$this->return_data('Conversion was NOT able to be recored because current user is not authorized to log conversions.', $ajax);
-		}
+		return $result;
 
-		// Return false if crawler
-
-		if ( $this->is_bot() ) {
-			$this->return_data('Conversion was NOT able to be recored because there is no user. A crawler was detected.', $ajax);
-		}
-
-		global $wpdb;
-		$today = date($this->date_format);
-
-		// Check if entry already exsits
-
-		$conversions = $wpdb->query($wpdb->prepare('SELECT * FROM ' . $this->get_table_name() . ' WHERE `date` = %s AND `data_id` = %d', $today, $data_id));
-
-		// Entry aleady exists, just add 1
-
-		if ( isset($conversions) && $conversions != 0) {
-
-			$result = $wpdb->query($wpdb->prepare('UPDATE ' . $this->get_table_name() . ' SET
-				`conversions` = `conversions` + 1
-				WHERE `date` = %s AND `data_id` = %d', $today, $data_id
-			));
-
-		}
-
-		// Entry does not exist, create a new one and set impressions to 1
-
-		else {
-
-			$result = $wpdb->query($wpdb->prepare('INSERT INTO ' . $this->get_table_name() . ' (
-				`date`,
-				`data_id`,
-				`impressions`,
-				`conversions`
-				) VALUES (%s, %d, 0, 1)',
-				$today,
-				$data_id
-			));
-		}
-
-		if ( $result ) {
-			$this->return_data('Conversion was able to be recored.', $ajax);
-		} else {
-			$this->return_data('Conversion was NOT able to be recored.', $ajax);
-		}
 	}
 
 	/**
@@ -319,23 +201,6 @@ class NNR_Stats_Tracker_v1 extends NNR_Stats_Tracker_Base_v1 {
 	}
 
 	/**
-	 * Check for BOTs visiting site
-	 *
-	 * @access public
-	 * @static
-	 * @return void
-	 */
-	function is_bot() {
-
-		if (isset($_SERVER['HTTP_USER_AGENT']) && preg_match('/bot|spider|crawler|curl|^$/i', $_SERVER['HTTP_USER_AGENT'])) {
-			return true;
-		} else {
-			return false;
-		}
-
-	}
-
-	/**
 	 * Returns the proper table name for Multisies
 	 *
 	 * @access public
@@ -349,23 +214,208 @@ class NNR_Stats_Tracker_v1 extends NNR_Stats_Tracker_Base_v1 {
 		return $wpdb->prefix . $this->table_name;
 	}
 
-	/**
-	 * Return data based on if this function is called from AJAX or not
-	 *
-	 * @access public
-	 * @param mixed $data
-	 * @param bool $ajax
-	 * @return void
-	 */
-	function return_data( $data, $ajax ) {
+}
 
-		if ( $ajax ) {
-			echo $data;
-			die(); // necessary for WordPress AJAX calls
-		} else {
-			return $data;
-		}
+// Add actions for tracking stats
 
+add_action( 'wp_ajax_nnr_stats_record_impression', 			'nnr_stats_record_impresssion_v1');
+add_action( 'wp_ajax_nopriv_nnr_stats_record_impression', 	'nnr_stats_record_impresssion_v1');
+add_action( 'wp_ajax_nnr_stats_record_conversion', 			'nnr_stats_ajax_record_conversion_v1');
+add_action( 'wp_ajax_nopriv_nnr_stats_record_conversion', 	'nnr_stats_ajax_record_conversion_v1');
+add_filter( 'nnr_news_int_submission_success', 				'nnr_stats_record_conversion_v1', 10, 1);
+
+/**
+ * Record an impression.  This can be called server side or client side.
+ *
+ * @access public
+ * @param bool $ajax (default: true)
+ * @param mixed $data_id (default: null)
+ * @return void
+ */
+function nnr_stats_record_impresssion_v1() {
+
+	$data_id = $_POST['data_id'];
+	$table_name = $_POST['table_name'];
+
+	// Return false if no data is given
+
+	if ( !isset($data_id) ) {
+		nnr_stats_return_data_v1('Impression was NOT able to be recored because no Data ID given.');
+	}
+
+	// Return false if crawler
+
+	if ( nnr_stats_is_bot_v1() ) {
+		nnr_stats_return_data_v1('Impression was NOT able to be recored because a crawler was detected.');
+	}
+
+	// Return if user is admin or higher
+
+	if ( current_user_can('edit_published_posts') ) {
+		nnr_stats_return_data_v1('Impression was NOT able to be recored because current user is an admin.');
+	}
+
+	global $wpdb;
+	$table_name = $wpdb->prefix . $table_name;
+	$today = date('Y-m-d');
+
+	// Check if entry already exsits
+
+	$impressions = $wpdb->query($wpdb->prepare('SELECT * FROM ' . $table_name . ' WHERE `date` = %s AND `data_id` = %d', $today, $data_id));
+
+	// Entry aleady exists, just add 1
+
+	if ( isset($impressions) && $impressions != 0 ) {
+
+		$result = $wpdb->query($wpdb->prepare('UPDATE ' . $table_name . ' SET
+			`impressions` = `impressions` + 1
+			WHERE `date` = %s AND `data_id` = %d', $today, $data_id
+		));
+
+	}
+
+	// Entry does not exist, create a new one and set impressions to 1
+
+	else {
+
+		$result = $wpdb->query($wpdb->prepare('INSERT INTO ' . $table_name . ' (
+			`date`,
+			`data_id`,
+			`impressions`,
+			`conversions`
+			) VALUES (%s, %d, 1, 0)',
+			$today,
+			$data_id
+		));
+
+	}
+
+	if ( $result ) {
+		nnr_stats_return_data_v1('Impression was able to be recored.');
+	} else {
+		nnr_stats_return_data_v1('Impression was NOT able to be recored.');
+	}
+}
+
+/**
+ * Record an conversion.  This can be called server side or client side.
+ *
+ * @access public
+ * @param bool $ajax (default: true)
+ * @param mixed $data_id (default: null)
+ * @return void
+ */
+function nnr_stats_record_conversion_v1( $data ) {
+
+	global $wpdb;
+
+	$data_id = $data['data_id'];
+	$table_name = $data['table_name'];
+
+	$table_name = $wpdb->prefix . $table_name;
+
+	// Return if no data is given
+
+	if ( !isset($data_id) ) {
+		return 'Conversion was NOT able to be recored because the Data ID was not retrieved.';
+	}
+
+	// Return if user is admin or higher
+
+	if ( current_user_can('edit_published_posts') ) {
+		return 'Conversion was NOT able to be recored because current user is not authorized to log conversions.';
+	}
+
+	// Return false if crawler
+
+	if ( nnr_stats_is_bot_v1() ) {
+		return 'Conversion was NOT able to be recored because there is no user. A crawler was detected.';
+	}
+
+	$today = date('Y-m-d');
+
+	// Check if entry already exsits
+
+	$conversions = $wpdb->query($wpdb->prepare('SELECT * FROM ' . $table_name . ' WHERE `date` = %s AND `data_id` = %d', $today, $data_id));
+
+	// Entry aleady exists, just add 1
+
+	if ( isset($conversions) && $conversions != 0) {
+
+		$result = $wpdb->query($wpdb->prepare('UPDATE ' . $table_name . ' SET
+			`conversions` = `conversions` + 1
+			WHERE `date` = %s AND `data_id` = %d', $today, $data_id
+		));
+
+	}
+
+	// Entry does not exist, create a new one and set impressions to 1
+
+	else {
+
+		$result = $wpdb->query($wpdb->prepare('INSERT INTO ' . $table_name . ' (
+			`date`,
+			`data_id`,
+			`impressions`,
+			`conversions`
+			) VALUES (%s, %d, 0, 1)',
+			$today,
+			$data_id
+		));
+	}
+
+	if ( $result ) {
+		return 'Conversion was able to be recored.';
+	} else {
+		return 'Conversion was NOT able to be recored.';
+	}
+}
+
+/**
+ * Record a conversion via AJAX
+ *
+ * @access public
+ * @return void
+ */
+function nnr_stats_ajax_record_conversion_v1() {
+
+	$data = nnr_stats_record_conversion_v1(array(
+		'data_id'		=> $_POST['data_id'],
+		'table_name'	=> $_POST['table_name'],
+	));
+
+	echo $data;
+	die();
+}
+
+/**
+ * Return data based on if this function is called from AJAX or not
+ *
+ * @access public
+ * @param mixed $data
+ * @param bool $ajax
+ * @return void
+ */
+function nnr_stats_return_data_v1( $data, $ajax = true ) {
+
+	echo $data;
+	die(); // necessary for WordPress AJAX calls
+
+}
+
+/**
+ * Check for BOTs visiting site
+ *
+ * @access public
+ * @static
+ * @return void
+ */
+function nnr_stats_is_bot_v1() {
+
+	if (isset($_SERVER['HTTP_USER_AGENT']) && preg_match('/bot|spider|crawler|curl|^$/i', $_SERVER['HTTP_USER_AGENT'])) {
+		return true;
+	} else {
+		return false;
 	}
 
 }
