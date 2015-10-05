@@ -8,7 +8,7 @@ jQuery(document).ready(function($) {
 	// Load stats via AJAX
 
 	$.post(ajaxurl, {
-			'action': 'nnr_stats_tracker_load',
+			'action': 'nnr_stats_tracker_load_v1',
 			'table_name' : nnr_stats_tracker_data.table_name,
 			'data_table_name' : nnr_stats_tracker_data.data_table_name,
 			'text_domain' : nnr_stats_tracker_data.text_domain,

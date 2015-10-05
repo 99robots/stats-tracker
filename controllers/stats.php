@@ -80,6 +80,8 @@ class NNR_Stats_Tracker_Display_v1 {
 	 */
 	function __construct($table_name, $args = array()) {
 
+		do_action('nnr_stats_before_new_controller_v1');
+
 		$args = array_merge(array(
 			'prefix'			=> '',
 			'text_domain'		=> '',
@@ -87,7 +89,7 @@ class NNR_Stats_Tracker_Display_v1 {
 			'data_table_name'	=> '',
 		), $args);
 
-		$args = apply_filters('nnr_stats_tracker_display_args', $args );
+		$args = apply_filters('nnr_stats_display_args_v1', $args );
 
         global $status, $page;
 
@@ -99,6 +101,8 @@ class NNR_Stats_Tracker_Display_v1 {
 
         $this->include_scripts();
 
+        do_action('nnr_stats_after_new_controller_v1');
+
 	}
 
 	/**
@@ -108,6 +112,8 @@ class NNR_Stats_Tracker_Display_v1 {
 	 * @return void
 	 */
 	function include_scripts() {
+
+		do_action('nnr_stats_before_include_scripts_v1');
 
 		// Styles
 
@@ -122,13 +128,15 @@ class NNR_Stats_Tracker_Display_v1 {
 		wp_enqueue_script('bootstrap-moment-js', 			plugins_url( 'js/moment.js', dirname(__FILE__)), array('jquery'));
 		wp_enqueue_script('bootstrap-datetimepicker-js', 	plugins_url( 'js/bootstrap-datetimepicker.min.js', dirname(__FILE__)), array('jquery', 'bootstrap-moment-js'));
 		wp_enqueue_script('stats-tracker-js', 				plugins_url( 'js/stats.js', dirname(__FILE__)), array('jquery', 'bootstrap-datetimepicker-js', 'bootstrap-sortable-js', 'line-graph-js'));
-		wp_localize_script('stats-tracker-js', 'nnr_stats_tracker_data', array(
+		wp_localize_script('stats-tracker-js', 'nnr_stats_tracker_data', apply_filters('nnr_stats_scripts_data_v1', array(
 			'prefix'			=> $this->prefix,
 			'table_name'		=> $this->table_name,
 			'data_table_name'	=> $this->data_table_name,
 			'text_domain'		=> $this->text_domain,
 			'stats_page'		=> $this->stats_page,
-		));
+		) ) );
+
+		do_action('nnr_stats_after_include_scripts_v1');
 
 	}
 
@@ -142,6 +150,8 @@ class NNR_Stats_Tracker_Display_v1 {
 	 * @return void
 	 */
 	function add_empty_data($start_date, $end_date, $stats) {
+
+		do_action('nnr_stats_before_add_empty_data_v1');
 
 		// Make sure we add data with 0 impressions and converions if there is no data for that date
 
@@ -176,13 +186,15 @@ class NNR_Stats_Tracker_Display_v1 {
 
 		usort($stats, 'nnr_stats_sort_by_date');
 
-		return $stats;
+		do_action('nnr_stats_after_add_empty_data_v1');
+
+		return apply_filters('nnr_stats_add_empty_data_v1', $stats);
 
 	}
 
 }
 
-add_action( 'wp_ajax_nnr_stats_tracker_load', 'nnr_stats_tracker_load_v1');
+add_action( 'wp_ajax_nnr_stats_tracker_load_v1', 'nnr_stats_tracker_load_v1');
 
 /**
  * Display the Stats
@@ -191,6 +203,8 @@ add_action( 'wp_ajax_nnr_stats_tracker_load', 'nnr_stats_tracker_load_v1');
  * @return void
  */
 function nnr_stats_tracker_load_v1() {
+
+	do_action('nnr_stats_before_load_v1');
 
 	// Check for Table Name
 
@@ -474,7 +488,9 @@ function nnr_stats_tracker_load_v1() {
 		</div>';
 	}
 
-	echo json_encode(array('stats_content' => $stats_content, 'data_stats' => $data_stats));
+	do_action('nnr_stats_after_load_v1');
+
+	echo json_encode( apply_filters('nnr_stats_load_data_v1', array('stats_content' => $stats_content, 'data_stats' => $data_stats) ) );
 
 	die(); // this is required to terminate immediately and return a proper response
 }

@@ -1,3 +1,5 @@
+<?php do_action('nnr_stats_before_filters_v1'); ?>
+
 <div id="nnr-before-table" class="col-xs-12 pull-right">
 	<form method="get" class="form-inline" role="form">
 
@@ -48,6 +50,8 @@
 
 	</form>
 </div>
+
+<?php do_action('nnr_stats_after_filters_v1'); ?>
 
 <div id="nnr-loading-stats">
 	<div class="fa fa-spinner fa-spin fa-5x"></div>
