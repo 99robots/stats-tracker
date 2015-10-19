@@ -42,12 +42,7 @@ class NNR_Stats_Tracker_v1 extends NNR_Stats_Tracker_Base_v1 {
 	 * @return void
 	 */
 	function __construct($table_name) {
-
-		do_action('nnr_stats_before_new_model_v1');
-
 		$this->table_name = $table_name;
-
-		do_action('nnr_stats_after_new_model_v1');
 	}
 
 	/**
@@ -59,11 +54,9 @@ class NNR_Stats_Tracker_v1 extends NNR_Stats_Tracker_Base_v1 {
 	 */
 	function create_table() {
 
-		do_action('nnr_stats_before_create_table_v1');
-
 		global $wpdb;
 
-		$result = $wpdb->query( apply_filters('nnr_stats_create_table_v1', "
+		$result = $wpdb->query("
 			CREATE TABLE IF NOT EXISTS `" . $this->get_table_name() . "` (
 				`id` int(11) NOT NULL AUTO_INCREMENT,
 				`data_id` int(11) NOT NULL DEFAULT 0,
@@ -72,9 +65,7 @@ class NNR_Stats_Tracker_v1 extends NNR_Stats_Tracker_Base_v1 {
 				`conversions` int(8) NOT NULL DEFAULT 0,
 				PRIMARY KEY (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;
-		") );
-
-		do_action('nnr_stats_after_create_table_v1');
+		");
 
 		return $result;
 	}
@@ -90,8 +81,6 @@ class NNR_Stats_Tracker_v1 extends NNR_Stats_Tracker_Base_v1 {
 	 * @return void
 	 */
 	function get_stats($start = null, $end = null, $id = null, $select = '*') {
-
-		do_action('nnr_stats_before_get_stats_v1');
 
 		$query = null;
 
@@ -139,9 +128,7 @@ class NNR_Stats_Tracker_v1 extends NNR_Stats_Tracker_Base_v1 {
 			return false;
 		}
 
-		$result = $wpdb->get_results( apply_filters('nnr_stats_get_stats_v1', $query) , 'ARRAY_A');
-
-		do_action('nnr_stats_after_get_stats_v1');
+		$result = $wpdb->get_results($query, 'ARRAY_A');
 
 		return $result;
 	}
@@ -156,8 +143,6 @@ class NNR_Stats_Tracker_v1 extends NNR_Stats_Tracker_Base_v1 {
 	 * @return void
 	 */
 	function get_stats_from_id( $id, $start = null, $end = null ) {
-
-		do_action('nnr_stats_before_get_stats_from_id_v1');
 
 		$query = null;
 
@@ -187,9 +172,7 @@ class NNR_Stats_Tracker_v1 extends NNR_Stats_Tracker_Base_v1 {
 			return false;
 		}
 
-		$result = $wpdb->get_results( apply_filters('nnr_stats_get_stats_from_id_v1', $query), 'ARRAY_A');
-
-		do_action('nnr_stats_after_get_stats_from_id_v1');
+		$result = $wpdb->get_results($query, 'ARRAY_A');
 
 		return $result;
 
@@ -204,8 +187,6 @@ class NNR_Stats_Tracker_v1 extends NNR_Stats_Tracker_Base_v1 {
 	 */
 	function delete_stats( $data_id ) {
 
-		do_action('nnr_stats_after_delete_stats_v1');
-
 		// Return false if no data id given
 
 		if ( !isset($data_id) ) {
@@ -213,9 +194,7 @@ class NNR_Stats_Tracker_v1 extends NNR_Stats_Tracker_Base_v1 {
 		}
 
 		global $wpdb;
-		$result = $wpdb->query( apply_filters('nnr_stats_delete_stats_v1', $wpdb->prepare('DELETE FROM ' . $this->getTableName() . ' WHERE `data_id` = %d', $data_id) ) );
-
-		do_action('nnr_stats_after_delete_stats_v1');
+		$result = $wpdb->query($wpdb->prepare('DELETE FROM ' . $this->getTableName() . ' WHERE `data_id` = %d', $data_id));
 
 		return $result;
 
@@ -232,7 +211,7 @@ class NNR_Stats_Tracker_v1 extends NNR_Stats_Tracker_Base_v1 {
 
 		global $wpdb;
 
-		return apply_filters('nnr_stats_get_table_name_v1', $wpdb->prefix . $this->table_name);
+		return $wpdb->prefix . $this->table_name;
 	}
 
 }
@@ -243,7 +222,7 @@ add_action( 'wp_ajax_nnr_stats_record_impression_v1', 			'nnr_stats_record_impre
 add_action( 'wp_ajax_nopriv_nnr_stats_record_impression_v1', 	'nnr_stats_record_impresssion_v1');
 add_action( 'wp_ajax_nnr_stats_record_conversion_v1', 			'nnr_stats_ajax_record_conversion_v1');
 add_action( 'wp_ajax_nopriv_nnr_stats_record_conversion_v1', 	'nnr_stats_ajax_record_conversion_v1');
-add_filter( 'nnr_news_int_submission_success_v1', 				'nnr_stats_record_conversion_v1', 10, 1);
+add_action( 'nnr_news_int_submission_success_v1', 				'nnr_stats_record_conversion_v1', 10, 2);
 
 /**
  * Record an impression.  This can be called server side or client side.
@@ -254,8 +233,6 @@ add_filter( 'nnr_news_int_submission_success_v1', 				'nnr_stats_record_conversi
  * @return void
  */
 function nnr_stats_record_impresssion_v1() {
-
-	do_action('nnr_stats_before_record_impresssion_v1');
 
 	$data_id = $_POST['data_id'];
 	$table_name = $_POST['table_name'];
@@ -313,8 +290,6 @@ function nnr_stats_record_impresssion_v1() {
 
 	}
 
-	do_action('nnr_stats_after_record_impresssion_v1');
-
 	if ( $result ) {
 		nnr_stats_return_data_v1('Impression was able to be recored.');
 	} else {
@@ -331,8 +306,6 @@ function nnr_stats_record_impresssion_v1() {
  * @return void
  */
 function nnr_stats_record_conversion_v1( $data ) {
-
-	do_action('nnr_stats_before_record_conversion_v1');
 
 	global $wpdb;
 
@@ -391,8 +364,6 @@ function nnr_stats_record_conversion_v1( $data ) {
 		));
 	}
 
-	do_action('nnr_stats_after_record_conversion_v1');
-
 	if ( $result ) {
 		return 'Conversion was able to be recored.';
 	} else {
@@ -408,14 +379,10 @@ function nnr_stats_record_conversion_v1( $data ) {
  */
 function nnr_stats_ajax_record_conversion_v1() {
 
-	do_action('nnr_stats_before_ajax_record_conversion_v1');
-
 	$data = nnr_stats_record_conversion_v1(array(
 		'data_id'		=> $_POST['data_id'],
 		'table_name'	=> $_POST['table_name'],
 	));
-
-	do_action('nnr_stats_after_ajax_record_conversion_v1');
 
 	echo $data;
 	die();
